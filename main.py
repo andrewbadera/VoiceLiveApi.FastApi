@@ -20,7 +20,8 @@ except ImportError:
     print("Note: python-dotenv not installed. Using existing environment variables.")
 
 # Azure VoiceLive SDK imports
-from azure.core.credentials import AzureKeyCredential, TokenCredential
+from azure.core.credentials import TokenCredential
+from azure.identity.aio import AzureCliCredential
 from azure.ai.voicelive.aio import connect
 from azure.ai.voicelive.models import ServerEventType
 
@@ -55,7 +56,6 @@ app.add_middleware(
 
 # Configuration from environment
 AZURE_VOICELIVE_ENDPOINT = os.environ.get("AZURE_VOICELIVE_ENDPOINT")
-AZURE_VOICELIVE_API_KEY = os.environ.get("AZURE_VOICELIVE_API_KEY")
 VOICELIVE_MODEL = os.environ.get("VOICELIVE_MODEL", "gpt-4o-realtime-preview")
 VOICELIVE_VOICE = os.environ.get("VOICELIVE_VOICE", "alloy")
 VOICELIVE_INSTRUCTIONS = os.environ.get(
@@ -85,7 +85,7 @@ class WebSocketVoiceSession:
         self,
         websocket: WebSocket,
         endpoint: str,
-        credential: Union[AzureKeyCredential, TokenCredential],
+        credential: TokenCredential,
         model: str,
         voice: str,
         instructions: str,
@@ -735,17 +735,17 @@ async def websocket_endpoint(websocket: WebSocket):
     logger.info("Browser WebSocket connection accepted")
 
     # Validate configuration
-    if not AZURE_VOICELIVE_ENDPOINT or not AZURE_VOICELIVE_API_KEY:
+    if not AZURE_VOICELIVE_ENDPOINT:
         await websocket.send_json({
             "type": "error",
-            "message": "Server not configured. Missing Azure credentials."
+            "message": "Server not configured. Missing Azure endpoint."
         })
         await websocket.close()
         return
 
-    # Create endpoint URL
+    # Create endpoint URL and credential
     endpoint = f"wss://{AZURE_VOICELIVE_ENDPOINT}?api-version=2024-02-15&model={VOICELIVE_MODEL}"
-    credential = AzureKeyCredential(AZURE_VOICELIVE_API_KEY)
+    credential = AzureCliCredential()
 
     # Create and start session
     session = WebSocketVoiceSession(
@@ -773,11 +773,11 @@ if __name__ == "__main__":
     import uvicorn
     
     # Validate environment
-    if not AZURE_VOICELIVE_ENDPOINT or not AZURE_VOICELIVE_API_KEY:
-        print("❌ Error: Missing required environment variables:")
+    if not AZURE_VOICELIVE_ENDPOINT:
+        print("❌ Error: Missing required environment variable:")
         print("   - AZURE_VOICELIVE_ENDPOINT")
-        print("   - AZURE_VOICELIVE_API_KEY")
-        print("\nPlease set these in your .env file or environment.")
+        print("\nPlease set this in your .env file or environment.")
+        print("Make sure you're logged in with Azure CLI: az login")
         sys.exit(1)
     
     print("🎙️  Voice Live API - FastAPI WebSocket Bridge")
@@ -785,6 +785,7 @@ if __name__ == "__main__":
     print(f"Model: {VOICELIVE_MODEL}")
     print(f"Voice: {VOICELIVE_VOICE}")
     print(f"Endpoint: {AZURE_VOICELIVE_ENDPOINT}")
+    print(f"Authentication: Azure CLI Credential")
     print("=" * 60)
     print("\n🌐 Starting server...")
     print("   Local: http://localhost:8080")

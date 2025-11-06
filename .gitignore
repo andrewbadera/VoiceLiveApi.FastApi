@@ -20,6 +20,9 @@ lib64/
 parts/
 sdist/
 var/
+Scripts/
+Lib/
+Include/
 *.egg-info/
 .installed.cfg
 *.manifest

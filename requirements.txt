@@ -1,0 +1,14 @@
+# FastAPI and server dependencies
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+websockets==14.1
+python-multipart==0.0.20
+
+# Azure dependencies
+azure-ai-voicelive==1.1.0
+azure-core==1.36.0
+azure-identity==1.25.1
+
+# Other dependencies
+python-dotenv==1.2.1
+pydantic==2.10.5

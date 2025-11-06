@@ -47,7 +47,6 @@ cp .env.example .env
 Edit `.env`:
 ```env
 AZURE_VOICELIVE_ENDPOINT=your-resource-name.cognitiveservices.azure.com/voice-live/realtime
-AZURE_VOICELIVE_API_KEY=your-api-key-here
 VOICELIVE_MODEL=gpt-4o-realtime-preview
 VOICELIVE_VOICE=alloy
 ```
